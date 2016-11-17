@@ -1,2 +1,13 @@
-# ProjetRP
-Répertoire contenant le projet de Réseaux et Protocoles (CMI Licence 3 Semestre 5).
+# Projet : Réseaux et Protocoles
+
+Ce répertoire contient le projet à faire en cours de Réseaux et Protocoles.
+
+## Auteurs
+
+* Marek Felsoci
+* Nathan Urbain
+
+## Description des répertoires
+
+* hash
+> Contient tous les fichiers sources et tests couvrant le hachage SHA256.
