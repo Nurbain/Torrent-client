@@ -36,13 +36,13 @@ int main(int argc , char **argv)
 	//client
 	unsigned char client_type=55;
 	short int client_lgn = sizeof(dest.sin6_addr)+2;
-	short int client_port =atoi(argv[3]);
+	short int client_port =atoi(argv[2]);
 	struct in6_addr client_addr = dest.sin6_addr;
 	
 
 	//message
 	unsigned char msg_type;
-	if(strcmp(argv[0], "put" ) ==0)
+	if(strcmp(argv[4], "put" ) ==0)
 	{
 		msg_type = 110;
 	}
@@ -75,7 +75,7 @@ int main(int argc , char **argv)
 	short int pmsg_lgn;
 	char phash_type;
 	short int phash_lgn;
-	char* phash[65];
+	char phash[65];
 	char pclient_type;
 	short int pclient_lgn;
 	short int pclient_port;
@@ -123,7 +123,7 @@ int main(int argc , char **argv)
 	struct sockaddr_in6 my_addr; // adresse ipv4
 
 	//socket a creer
-	if((sockfd = socket(AF_INET6,SOCK_DGRAM,IPPROTO_UDP)) == -1)
+	if((sockfd2 = socket(AF_INET6,SOCK_DGRAM,IPPROTO_UDP)) == -1)
 	{
 		perror("socket fail \n");
 		exit(EXIT_FAILURE);
@@ -161,7 +161,7 @@ int main(int argc , char **argv)
 		short int rmsg_lgn;
 		char rhash_type ;
 		short int rhash_lgn;
-		char* rhash[65];
+		char rhash[65];
 		char rclient_type;
 		short int rclient_lgn;
 		short int rclient_port ;

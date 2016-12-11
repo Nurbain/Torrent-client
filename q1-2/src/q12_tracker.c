@@ -39,8 +39,13 @@ PGMessage vtopgm(void * message)
 		die("Message does not exist");
 	
 	PGMessage result;
+    
+    result.ms_hash = malloc(HASH_SIZE);
 	
 	memcpy(&result.ms_type, message, MESSAGE_TYPE_LENGTH);
+    
+    //printf("mtype 1st: %d\n", result.ms_type);
+    
 	memcpy(&result.ms_size, message + MESSAGE_TYPE_LENGTH, MESSAGE_SIZE_LENGTH);
 	
 	void * hash = message + 2*(MESSAGE_TYPE_LENGTH + MESSAGE_SIZE_LENGTH);
@@ -61,8 +66,11 @@ PGMessage vtopgm(void * message)
 //Ajout d'un couple hash+client dans la liste
 FileList fadd(FileList fl, const PGMessage message)
 {
-	if(message.ms_type != 110 || message.ms_type != 112)
+	if(message.ms_type != 110)
+    {
+        printf("die mtype: %d\n", message.ms_type);
 		die("Message type incorrect");
+    }
 	
 	FileList new = (FileList) malloc(sizeof(struct s_flist));
 	
@@ -116,7 +124,11 @@ void * put(void * message, FileList list)
 	if(message == NULL)
 		die("Empty message");
 	
-	list = fadd(list, vtopgm(message));
+    
+     
+    PGMessage converted = vtopgm(message);
+    
+	list = fadd(list, converted);
 	
 	void * output = message;
 	
@@ -223,8 +235,10 @@ int main(int argc, char ** argv)
 	int bytes_received;
 	int sockfd, ssockfd;
 	FileList list = NULL;
+    const int       optVal = 1;
+    const socklen_t optLen = sizeof(optVal);
 	
-	void * message = (void*) malloc(PGT_IPV6_SIZE*sizeof(void));
+	void * message = malloc(PGT_IPV6_SIZE);
 	struct sockaddr_in6 local, remote;
 	
 	local.sin6_family = AF_INET6;
@@ -236,6 +250,9 @@ int main(int argc, char ** argv)
 	
 	if((sockfd = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP)) == -1)
 		die("Unable to launch retrieving socket");
+
+    if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (void*) &optVal, optLen) == -1)
+        die("Unable to set socket option");
 	
 	if(bind(sockfd, (struct sockaddr *) &local, addr_length) == -1)
 	{
@@ -247,22 +264,26 @@ int main(int argc, char ** argv)
 
 	while(1)
 	{
-		bytes_received = recvfrom(sockfd, message, PGT_IPV6_SIZE, 0, (struct sockaddr *) &remote, &addr_length);
+		bytes_received = recvfrom(sockfd, message, PGT_IPV6_SIZE, 0, (struct sockaddr *) &local, &addr_length);
 		
 		if(bytes_received == -1)
 			die("Receiving interrupted due to an error");
 			
 		PGMessage recm = vtopgm(message);
-		
+        
 		switch(recm.ms_type)
 		{
 			case 110: //PUT
 				remote.sin6_family = AF_INET6;
 				remote.sin6_port = htons(recm.ms_client.cl_port);
 				remote.sin6_addr = recm.ms_client.cl_addr;
-				
+                
+                printf("Received PUT\nof: %s\non port: %d\n", recm.ms_hash, recm.ms_client.cl_port);
+                
 				if((ssockfd = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP)) == -1)
 					die("Unable to launch sending socket");
+                
+                setsockopt(ssockfd, SOL_SOCKET, SO_REUSEADDR, (void*) &optVal, optLen);
 				
 				if(bind(ssockfd, (struct sockaddr *) &remote, addr_length) == -1)
 				{
@@ -277,6 +298,7 @@ int main(int argc, char ** argv)
 				}
 				
 				close(ssockfd);
+                break;
 			case 112: //GET
 				remote.sin6_family = AF_INET6;
 				remote.sin6_port = htons(recm.ms_client.cl_port);
@@ -284,6 +306,8 @@ int main(int argc, char ** argv)
 				
 				if((ssockfd = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP)) == -1)
 					die("Unable to launch sending socket");
+                
+                setsockopt(ssockfd, SOL_SOCKET, SO_REUSEADDR, (void*) &optVal, optLen);
 				
 				if(bind(ssockfd, (struct sockaddr *) &remote, addr_length) == -1)
 				{
@@ -298,10 +322,11 @@ int main(int argc, char ** argv)
 				}
 				
 				close(ssockfd);
+                break;
 			default:
 				die("Message received is of an unsupported type");
 				
-		}		
+		}
 	}
 	
 	close(sockfd);	

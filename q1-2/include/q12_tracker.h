@@ -46,7 +46,7 @@ typedef struct s_flist
 //Définition du type PGMessage (stockage de données en format exploitable des messages PUT/GET reçus)
 typedef struct s_pgmess
 {
-	int ms_type;
+	char ms_type;
 	short int ms_size;
 	unsigned char * ms_hash;
 	client ms_client;
