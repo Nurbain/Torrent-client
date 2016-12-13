@@ -1,6 +1,8 @@
 #ifndef __Q12_CLIENT_H
 #define __Q12_CLIENT_H
 
+//Fichier h du client 
+
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -16,7 +18,7 @@
 #include <ifaddrs.h>
 #include <netdb.h>
 
-#define _GNU_SOURCE 
+#define _GNU_SOURCE
 
 //Définition de différentes tailles et longueurs (en octets-Bytes)
 #define PGT_IPV6_SIZE 92 //Bytes
